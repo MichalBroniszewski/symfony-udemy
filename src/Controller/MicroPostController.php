@@ -13,6 +13,7 @@ use App\Entity\MicroPost;
 use App\Form\MicroPostType;
 use App\Repository\MicroPostRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -79,6 +80,7 @@ class MicroPostController extends AbstractController
      */
     public function edit(MicroPost $microPost, Request $request)
     {
+        $this->denyAccessUnlessGranted('edit', $microPost);
         $form = $this->formFactory->create(
             MicroPostType::class,
             $microPost
@@ -90,6 +92,11 @@ class MicroPostController extends AbstractController
 
             return $this->redirect($this->generateUrl('micro_post_index'));
         }
+
+        $this->addFlash(
+            'notice',
+            sprintf('Micro post nr.%s was successfully edited!', $microPost->getId())
+        );
 
         return $this->render(
             'micro-post/add.html.twig',
@@ -104,10 +111,11 @@ class MicroPostController extends AbstractController
      */
     public function delete(MicroPost $microPost)
     {
+        $this->denyAccessUnlessGranted('delete', $microPost);
         $this->entityManager->remove($microPost);
         $this->entityManager->flush();
 
-        $this->addFlash('notice', 'Micro post was deleted');
+        $this->addFlash('notice', 'Micro post was deleted.');
 
         return $this->redirect($this->generateUrl('micro_post_index'));
     }
@@ -117,11 +125,14 @@ class MicroPostController extends AbstractController
      * @return Response
      * @throws \Exception
      * @Route("/add", name="micro_post_add")
+     * @Security("is_granted('ROLE_USER')")
      */
     public function add(Request $request)
     {
+        $user = $this->getUser();
         $microPost = new MicroPost();
         $microPost->setTime(new \DateTime('now'));
+        $microPost->setUser($user);
 
         $form = $this->formFactory->create(
             MicroPostType::class,

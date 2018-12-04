@@ -2,7 +2,7 @@
     <img src="https://www.download3k.com/icons/World-of-Warcraft-Cataclysm-Full-Game-Client-388647.png?v=2"
          alt="" class="mr-2 rounded">
     <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
-        <span class="d-block"><strong class="text-gray-dark">@username</strong> <small>· {{ post.time | date("H:i:s d/m/Y") }}</small></span>
+        <span class="d-block"><strong class="text-gray-dark">@{{ post.user.username }}</strong> <small>· {{ post.time | date("H:i:s d/m/Y") }}</small></span>
         {{ post.text }}
     </p>
 </div>

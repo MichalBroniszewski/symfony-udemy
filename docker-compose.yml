@@ -12,6 +12,8 @@ services:
       PHP_IDE_CONFIG: "serverName=${PHP_IDE_CONFIG_SERVERNAME}"
       COLUMNS: ${TERMINAL_COLS}
       LINES: ${TERMINAL_LINES}
+      BLACKFIRE_CLIENT_ID: ${BLACKFIRE_CLIENT_ID}
+      BLACKFIRE_CLIENT_TOKEN: ${BLACKFIRE_CLIENT_TOKEN}
 
   nginx:
     image: maciejslawik/nginx:latest
@@ -39,3 +41,9 @@ services:
       LINES: ${TERMINAL_LINES}
     volumes:
       - ./docker/data/mysql:/var/lib/mysql
+
+  blackfire:
+    image: blackfire/blackfire
+    environment:
+      BLACKFIRE_SERVER_ID: ${BLACKFIRE_SERVER_ID}
+      BLACKFIRE_SERVER_TOKEN: ${BLACKFIRE_SERVER_TOKEN}
