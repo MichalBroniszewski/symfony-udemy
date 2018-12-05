@@ -10,8 +10,10 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\MicroPost;
+use App\Entity\User;
 use App\Form\MicroPostType;
 use App\Repository\MicroPostRepository;
+use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -57,17 +59,33 @@ class MicroPostController extends AbstractController
     }
 
     /**
+     * @param UserRepository $userRepository
      * @return Response
      * @Route("/", name="micro_post_index")
      */
-    public function index()
+    public function index(UserRepository $userRepository)
     {
+        $currentUser = $this->getUser();
+        $usersToFollow = [];
+
+        if ($currentUser instanceof User) {
+            $followingUsers = $currentUser->getFollowing();
+            $posts = $this->microPostRepository->findAllByUsers($followingUsers);
+
+            $usersToFollow = count($posts) === 0 ?
+                $userRepository->findAllWithMoreThanFivePostsExceptUser($currentUser)
+                : [];
+        } else {
+            $posts = $this->microPostRepository->findBy(
+                [],
+                ['time' => 'DESC']
+            );
+        }
+
         return $this->render(
             'micro-post/index.html.twig', [
-                'posts' => $this->microPostRepository->findBy(
-                    [],
-                    ['time' => 'DESC']
-                )
+                'posts' => $posts,
+                'usersToFollow' => $usersToFollow
             ]
         );
     }
@@ -131,7 +149,6 @@ class MicroPostController extends AbstractController
     {
         $user = $this->getUser();
         $microPost = new MicroPost();
-        $microPost->setTime(new \DateTime('now'));
         $microPost->setUser($user);
 
         $form = $this->formFactory->create(
@@ -150,6 +167,24 @@ class MicroPostController extends AbstractController
         return $this->render(
             'micro-post/add.html.twig',
             ['form' => $form->createView()]
+        );
+    }
+
+    /**
+     * @Route("/user/{username}", name="micro_post_user")
+     * @param User $userWithPosts
+     * @return Response
+     */
+    public function userPosts(User $userWithPosts)
+    {
+        return $this->render(
+            'micro-post/user-posts.html.twig', [
+                'posts' => $this->microPostRepository->findBy(
+                    ['user' => $userWithPosts],
+                    ['time' => 'DESC']
+                ),
+                'user' => $userWithPosts
+            ]
         );
     }
 
