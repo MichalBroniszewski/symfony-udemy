@@ -1,5 +1,6 @@
 parameters:
   locale: 'en'
+  mail_from: '%env(MAILER_FROM)%'
 
 services:
   _defaults:
@@ -18,6 +19,10 @@ services:
   App\Twig\AppExtension:
     arguments:
       $locale: '%locale%'
+
+  App\Mailer\Mailer:
+    arguments:
+      $mailFrom: '%mail_from%'
 
   App\EventListener\LikeNotificationSubscriber:
     tags:

@@ -10,8 +10,10 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Entity\User;
+use App\Event\UserRegisterEvent;
 use App\Form\UserType;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -32,18 +34,25 @@ class RegisterController extends Controller
      * @var EntityManagerInterface
      */
     private $entityManager;
+    /**
+     * @var EventDispatcherInterface
+     */
+    private $eventDispatcher;
 
     /**
      * RegisterController constructor.
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param EntityManagerInterface $entityManager
+     * @param EventDispatcherInterface $eventDispatcher
      */
     public function __construct(
         UserPasswordEncoderInterface $passwordEncoder,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        EventDispatcherInterface $eventDispatcher
     ) {
         $this->passwordEncoder = $passwordEncoder;
         $this->entityManager = $entityManager;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     /**
@@ -67,11 +76,19 @@ class RegisterController extends Controller
             $this->entityManager->persist($user);
             $this->entityManager->flush();
 
-            $this->redirect('micro_post_index');
+            $userRegisterEvent = new UserRegisterEvent($user);
+            $this->eventDispatcher->dispatch(
+                UserRegisterEvent::NAME,
+                $userRegisterEvent
+            );
+
+            $this->addFlash('notice', 'You\'ve successfully registered to test app!');
+
+            return $this->redirectToRoute('micro_post_index');
         }
 
         return $this->render('register/register.html.twig', [
-                'form' => $form->createView()
-            ]);
+            'form' => $form->createView()
+        ]);
     }
 }
