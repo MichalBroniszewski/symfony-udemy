@@ -26,7 +26,7 @@
         <ul class="navbar-nav px-3">
             {% if is_granted('ROLE_USER') %}
                 <li class="nav-item text-nowrap border-right border-secondary">
-                    <a class="nav-link">
+                    <a href="{{ path('notification_all') }}" class="nav-link">
                         Notifications
                         <span class="badge badge-light" id="notification-count">
                             <i class="fa fa-circle fa-circle-o-notch fa-spin"></i>
@@ -34,17 +34,20 @@
                     </a>
                 </li>
                 <li class="nav-item text-nowrap">
-                    <a class="nav-link"
-                       href="#">{{ app.user.fullName }}</a>
+                    <a class="nav-link" href="#">
+                        {{ app.user.fullName }}
+                    </a>
                 </li>
                 <li class="nav-item text-nowrap">
-                    <a class="nav-link"
-                       href="{{ logout_path() }}">Sign out</a>
+                    <a class="nav-link" href="{{ logout_path() }}">
+                        Sign out
+                    </a>
                 </li>
             {% else %}
                 <li class="nav-item text-nowrap">
-                    <a class="nav-link"
-                       href="{{ path('security_login') }}">Sign in</a>
+                    <a class="nav-link" href="{{ path('security_login') }}">
+                        Sign in
+                    </a>
                 </li>
             {% endif %}
         </ul>
@@ -61,14 +64,17 @@
 
     {% if is_granted('ROLE_USER') %}
     <script>
+        console.log('notification start');
         function fetchNotificationCount() {
+            console.log('notification request');
+            console.log('{{ path('notification_unread') }}');
             fetch(
                 '{{ path('notification_unread') }}',
                 {'credentials': 'include'}
             ).then(function (response) {
                 response.json().then(function (json) {
                     document.getElementById('notification-count').innerText = json.count;
-                    setTimeout(fetchNotificationCount, 5000);
+                    setTimeout(fetchNotificationCount, 120000);
                 });
             }).catch(function (reason) {
                 
