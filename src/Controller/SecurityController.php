@@ -9,6 +9,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
@@ -41,5 +42,29 @@ class SecurityController extends AbstractController
     public function logout()
     {
 
+    }
+
+    /**
+     * @Route("/confirm/{token}", name="security_confirm")
+     * @param string $token
+     * @param UserRepository $userRepository
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function confirm(string $token, UserRepository $userRepository)
+    {
+        $user = $userRepository->findOneBy([
+            'confirmationToken' => $token
+        ]);
+
+        if (null !== $user) {
+            $user->setEnabled(true);
+            $user->setConfirmationToken('');
+
+            $this->getDoctrine()->getManager()->flush();
+        }
+
+        return $this->render('security/confirmation.html.twig', [
+            'user' => $user
+        ]);
     }
 }

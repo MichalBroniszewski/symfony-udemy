@@ -1,5 +1,10 @@
 <h3>Welcome Adventurer!</h3>
 
-Hello {{ user.fullName }}! You've registered to symfony test app!
+<p>Hello {{ user.fullName }}! You've registered to symfony test app!</p>
 
-To login, go to <a href="{{ url('security_login') }}">login page.</a>
+<p>
+    Please confirm account by clicking
+    <a href="{{ url('security_confirm', {'token': user.confirmationToken}) }}">this link.</a>
+</p>
+
+<p>To login, go to <a href="{{ url('security_login') }}">login page.</a></p>

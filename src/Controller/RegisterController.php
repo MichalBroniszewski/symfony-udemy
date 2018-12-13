@@ -12,6 +12,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Event\UserRegisterEvent;
 use App\Form\UserType;
+use App\Security\TokenGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -38,27 +39,35 @@ class RegisterController extends Controller
      * @var EventDispatcherInterface
      */
     private $eventDispatcher;
+    /**
+     * @var TokenGenerator
+     */
+    private $tokenGenerator;
 
     /**
      * RegisterController constructor.
      * @param UserPasswordEncoderInterface $passwordEncoder
      * @param EntityManagerInterface $entityManager
      * @param EventDispatcherInterface $eventDispatcher
+     * @param TokenGenerator $tokenGenerator
      */
     public function __construct(
         UserPasswordEncoderInterface $passwordEncoder,
         EntityManagerInterface $entityManager,
-        EventDispatcherInterface $eventDispatcher
+        EventDispatcherInterface $eventDispatcher,
+        TokenGenerator $tokenGenerator
     ) {
         $this->passwordEncoder = $passwordEncoder;
         $this->entityManager = $entityManager;
         $this->eventDispatcher = $eventDispatcher;
+        $this->tokenGenerator = $tokenGenerator;
     }
 
     /**
      * @param Request $request
      * @return Response
      * @Route("/register", name="user_register")
+     * @throws \Exception
      */
     public function register(Request $request)
     {
@@ -72,7 +81,7 @@ class RegisterController extends Controller
                 $user->getPlainPassword()
             );
             $user->setPassword($password);
-
+            $user->setConfirmationToken($this->tokenGenerator->getRandomSecureToken(30));
             $this->entityManager->persist($user);
             $this->entityManager->flush();
 
@@ -87,7 +96,8 @@ class RegisterController extends Controller
             return $this->redirectToRoute('micro_post_index');
         }
 
-        return $this->render('register/register.html.twig', [
+        return $this->render(
+            'register/register.html.twig', [
             'form' => $form->createView()
         ]);
     }
