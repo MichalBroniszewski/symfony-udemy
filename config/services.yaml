@@ -1,29 +1,44 @@
 parameters:
-  locale: 'en'
-  mail_from: '%env(MAILER_FROM)%'
+    locale: 'en'
+    mail_from: '%env(MAILER_FROM)%'
 
 services:
-  _defaults:
-    autowire: true
-    autoconfigure: true
-    public: false
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
 
-  App\:
-    resource: '../src/*'
-    exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+    App\:
+        resource: '../src/*'
+        exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
 
-  App\Controller\:
-    resource: '../src/Controller'
-    tags: ['controller.service_arguments']
+    App\Controller\:
+        resource: '../src/Controller'
+        tags: ['controller.service_arguments']
 
-  App\Twig\AppExtension:
-    arguments:
-      $locale: '%locale%'
+    App\Twig\AppExtension:
+        arguments:
+            $locale: '%locale%'
 
-  App\Mailer\Mailer:
-    arguments:
-      $mailFrom: '%mail_from%'
+    App\Mailer\Mailer:
+        arguments:
+            $mailFrom: '%mail_from%'
 
-  App\EventListener\LikeNotificationSubscriber:
-    tags:
-      - { name: doctrine.event_listener, event: onFlush, connection: default }
+    App\EventListener\LikeNotificationSubscriber:
+        tags:
+            - { name: doctrine.event_listener, event: onFlush, connection: default }
+
+    Symfony\Component\HttpFoundation\Session\Storage\Handler\PdoSessionHandler:
+        arguments:
+            - !service { class: PDO, factory: 'database_connection:getWrappedConnection' }
+            - { lock_mode: 1}
+    #            - 'mysql:dbname=database, host=db, port=3306'
+    #            - { db_username: 'user', db_password: 'pass' }
+
+    App\EventListener\LocaleSubscriber:
+        arguments:
+            - '%kernel.default_locale%'
+
+    App\EventListener\UserSubscriber:
+        arguments:
+            $defaultLocale: '%kernel.default_locale%'

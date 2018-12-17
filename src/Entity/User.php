@@ -19,6 +19,9 @@ class User implements AdvancedUserInterface, Serializable
 {
     /** @var string */
     const ROLE_USER = 'ROLE_USER';
+    /**
+     *
+     */
     const ROLE_ADMIN = 'ROLE_ADMIN';
 
     /**
@@ -104,6 +107,11 @@ class User implements AdvancedUserInterface, Serializable
      * @ORM\Column(type="boolean")
      */
     private $enabled;
+
+    /**
+     * @ORM\OneToOne(targetEntity="App\Entity\UserPreferences", cascade={"persist"})
+     */
+    private $preferences;
 
     /**
      * User constructor.
@@ -326,6 +334,10 @@ class User implements AdvancedUserInterface, Serializable
         return $this->following;
     }
 
+    /**
+     * @param User $userToFollow
+     * @return void
+     */
     public function follow(User $userToFollow)
     {
         if ($this->getFollowing()->contains($userToFollow)) {
@@ -359,23 +371,51 @@ class User implements AdvancedUserInterface, Serializable
         $this->confirmationToken = $confirmationToken;
     }
 
+    /**
+     * @return bool
+     */
     public function isAccountNonExpired()
     {
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public function isAccountNonLocked()
     {
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public function isCredentialsNonExpired()
     {
         return true;
     }
 
+    /**
+     * @return bool
+     */
     public function isEnabled()
     {
         return $this->enabled;
+    }
+
+    /**
+     * @return UserPreferences|null
+     */
+    public function getPreferences()
+    {
+        return $this->preferences;
+    }
+
+    /**
+     * @param mixed $preferences
+     */
+    public function setPreferences($preferences): void
+    {
+        $this->preferences = $preferences;
     }
 }
